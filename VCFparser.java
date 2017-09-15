@@ -73,8 +73,8 @@ class VCFparser
 		ALT = toks.nextToken();
 	    else if (index == 7) // FILTER field
 		FILTER = toks.nextToken();
-// 	    else if (index == 8) // INFO field
-// 		INFO = toks.nextToken();
+ 	    else if (index == 8) // INFO field
+ 		INFO = toks.nextToken();
 	    else if (index == 9) { // Output format
 		genotype_ind = getGenotypeIndex(toks.nextToken());
 		if (genotype_ind < 0) break;
