@@ -253,7 +253,7 @@ class VCFparser
 	    try {
 		ret = Integer.parseInt(chr);
 	    } catch (Exception e) {
-		System.err.println("Unknown chromosome " + chr + ".");
+	//	System.err.println("Unknown chromosome " + chr + ".");
 	    }
 	
 	return ret;

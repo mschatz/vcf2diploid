@@ -29,7 +29,7 @@ public class VCF2diploid
 
 	for (int i = 0;i < vcfFiles.length;i++) {
 	    VCFparser parser = new VCFparser(vcfFiles[i],_id,pass);
-	    int n_ev = 0,var_nucs = 0;
+	    long n_ev = 0,var_nucs = 0;
 	    while (parser.hasMoreInput()) {
 	    	Variant var = parser.parseLine();
 	    	if (var == null) continue;
@@ -37,6 +37,7 @@ public class VCF2diploid
 		    var.paternal() == 0) continue;
 	    	int chr = var.chromosome();
 	    	if (chr <= 0 || chr > _variants.length) continue;
+        System.out.println("parsing variant: " + var.chromosome() + ":" +  var.position() + " del: " + var.deletion() + " vnuc:" + var.variantBases()); //mcs
 	    	_variants[chr - 1].add(var);
 		n_ev++;
 		var_nucs += var.variantBases();
@@ -96,6 +97,9 @@ public class VCF2diploid
 		ListIterator<Variant> it = varList.listIterator();
 		while (it.hasNext()) {
 		    Variant var = it.next();
+
+                   System.out.println("Processing variant: " + var.chromosome() + ":" +  var.position() + " del: " + var.deletion()); //mcs
+ 
 		    int     pos = var.position() - 1;
 		    int     del = var.deletion();
 		    if (!var.isPhased()) var.randomizeHaplotype();
@@ -115,27 +119,29 @@ public class VCF2diploid
 			}
 		}
 
+                System.err.println("Generating map for " + seqs[s].getName());
 		writeMap(seqs[s],paternal_seq,maternal_seq,
 			 pat_ins_seq,mat_ins_seq);
+
+                System.err.println("Generating diploid sequence for " + seqs[s].getName());
 		writeDiploid(ref_seq,paternal_seq,maternal_seq,
 			     pat_ins_seq,mat_ins_seq);
 
+                System.err.println("making parental chains " + seqs[s].getName());
 		paternal_chains.append(makeChains(seqs[s].getName(),
 						  paternalName(seqs[s].getName()),
 						  paternal_seq,pat_ins_seq,
 						  chain_id));
+
+                System.err.println("making maternal chains " + seqs[s].getName());
 		maternal_chains.append(makeChains(seqs[s].getName(),
 						  maternalName(seqs[s].getName()),
 						  maternal_seq,mat_ins_seq,
 						  chain_id));
 		chain_id++;
 		
-		System.out.println("Applied " + n_var_pat + " variants " +
-				   n_base_pat + " bases to " +
-				   "paternal genome.");
-		System.out.println("Applied " + n_var_mat + " variants " +
-				   n_base_mat + " bases to " +
-				   "maternal genome.");
+		System.out.println("Applied " + n_var_pat + " variants " + n_base_pat + " bases to " + "paternal genome.");
+		System.out.println("Applied " + n_var_mat + " variants " + n_base_mat + " bases to " + "maternal genome.");
 	    }
 	}
 
@@ -167,6 +173,8 @@ public class VCF2diploid
 			       Hashtable<Integer,String> ins_seq)
     {
 	boolean overlap = false;
+
+        System.out.println("Processing variant: " + pos + " del: " + del + " ins: " + ins);
 
 	if (pos >= new_seq.length || pos + del >= new_seq.length) {
 	    System.err.println("Variant out of chromosome bounds at " +
@@ -379,6 +387,7 @@ public class VCF2diploid
 			      Hashtable<Integer,String> pat_ins_seq,
 			      Hashtable<Integer,String> mat_ins_seq)
     {
+      System.err.println("writeDiploid - paternal");
 	String file_name = paternalName(ref_seq.getName() + "_" + _id) + ".fa";
 	String name      = paternalName(ref_seq.getName());
 	try {
@@ -391,6 +400,7 @@ public class VCF2diploid
 	    System.err.println(ex.toString());
 	}
 
+      System.err.println("writeDiploid - maternal");
 	file_name = maternalName(ref_seq.getName() + "_" + _id) + ".fa";
 	name      = maternalName(ref_seq.getName());
 	try {
@@ -422,6 +432,8 @@ public class VCF2diploid
 
 	StringBuffer line = new StringBuffer();
 	for (int p = 0;p < genome.length;p++) {
+          if ((p % 100000) == 0) { System.err.println(" processing base " + p); }
+
 	    if (ins_flag[p]) {
 		String new_seq = ins_seq.get(p);
 		if (new_seq != null && new_seq.length() > 0)
